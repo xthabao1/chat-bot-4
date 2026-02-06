@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Chi Tiêu Cá Nhân</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .summary-card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .summary-card .amount {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .history-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .history-item:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-category {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .history-amount {
+            font-size: 1.2em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .history-date {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .category-colors {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .category-tag {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .cat-food { background: #FF6B6B; color: white; }
+        .cat-transport { background: #4ECDC4; color: white; }
+        .cat-study { background: #45B7D1; color: white; }
+        .cat-entertainment { background: #FFA07A; color: white; }
+        .cat-other { background: #95E1D3; color: white; }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Dashboard Chi Tiêu</h1>
+        <p class="subtitle">Quản lý chi tiêu thông minh cho học sinh - sinh viên</p>
+
+        <!-- Tổng quan -->
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Tổng Chi Tiêu</h3>
+                <div class="amount" id="totalExpense">0 đ</div>
+            </div>
+            <div class="summary-card">
+                <h3>Số Giao Dịch</h3>
+                <div class="amount" id="totalTransactions">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Chi Nhiều Nhất</h3>
+                <div class="amount" id="topCategory">---</div>
+            </div>
+        </div>
+
+        <!-- Form nhập liệu -->
+        <div class="input-section">
+            <h2>📝 Thêm Khoản Chi</h2>
+            <form id="expenseForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="food">🍜 Ăn uống</label>
+                        <input type="number" id="food" min="0" placeholder="Nhập số tiền (VNĐ)">
+                    </div>
+                    <div class="form-group">
+                        <label for="transport">🚌 Đi lại</label>
+                        <input type="number" id="transport" min="0" placeholder="Nhập số tiền (VNĐ)">
+                    </div>
+                    <div class="form-group">
+                        <label for="study">📚 Học tập</label>
+                        <input type="number" id="study" min="0" placeholder="Nhập số tiền (VNĐ)">
+                    </div>
+                    <div class="form-group">
+                        <label for="entertainment">🎮 Giải trí</label>
+                        <input type="number" id="entertainment" min="0" placeholder="Nhập số tiền (VNĐ)">
+                    </div>
+                    <div class="form-group">
+                        <label for="other">❓ Khác</label>
+                        <input type="number" id="other" min="0" placeholder="Nhập số tiền (VNĐ)">
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button type="submit" class="btn-add">➕ Thêm Khoản Chi</button>
+                    <button type="button" class="btn-reset" onclick="resetAllData()">🗑️ Xóa Tất Cả</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Biểu đồ -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>📊 Biểu Đồ Tròn - Tỷ Lệ Chi Tiêu</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>📈 Biểu Đồ Cột - So Sánh Các Khoản</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Lịch sử giao dịch -->
+        <div class="history-section">
+            <h2>📜 Lịch Sử Giao Dịch</h2>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">
+                    <div style="font-size: 3em;">📭</div>
+                    <p>Chưa có giao dịch nào. Hãy thêm khoản chi đầu tiên!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu mặc định
+        const categories = {
+            food: { name: 'Ăn uống', icon: '🍜', color: '#FF6B6B' },
+            transport: { name: 'Đi lại', icon: '🚌', color: '#4ECDC4' },
+            study: { name: 'Học tập', icon: '📚', color: '#45B7D1' },
+            entertainment: { name: 'Giải trí', icon: '🎮', color: '#FFA07A' },
+            other: { name: 'Khác', icon: '❓', color: '#95E1D3' }
+        };
+
+        // Lấy dữ liệu từ localStorage
+        function getData() {
+            const data = localStorage.getItem('expenseData');
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Lưu dữ liệu vào localStorage
+        function saveData(data) {
+            localStorage.setItem('expenseData', JSON.stringify(data));
+        }
+
+        // Format tiền
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(amount);
+        }
+
+        // Tính tổng theo danh mục
+        function getTotalByCategory() {
+            const data = getData();
+            const totals = {};
+            
+            Object.keys(categories).forEach(cat => {
+                totals[cat] = 0;
+            });
+
+            data.forEach(item => {
+                if (totals[item.category] !== undefined) {
+                    totals[item.category] += item.amount;
+                }
+            });
+
+            return totals;
+        }
+
+        // Cập nhật tổng quan
+        function updateSummary() {
+            const data = getData();
+            const totals = getTotalByCategory();
+            
+            const totalExpense = Object.values(totals).reduce((a, b) => a + b, 0);
+            const totalTransactions = data.length;
+            
+            let topCategory = '---';
+            let maxAmount = 0;
+            
+            Object.entries(totals).forEach(([cat, amount]) => {
+                if (amount > maxAmount) {
+                    maxAmount = amount;
+                    topCategory = categories[cat].icon + ' ' + categories[cat].name;
+                }
+            });
+
+            document.getElementById('totalExpense').textContent = formatMoney(totalExpense);
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+            document.getElementById('topCategory').textContent = topCategory;
+        }
+
+        // Vẽ biểu đồ
+        let pieChart, barChart;
+
+        function updateCharts() {
+            const totals = getTotalByCategory();
+            const labels = Object.keys(categories).map(key => categories[key].name);
+            const values = Object.keys(categories).map(key => totals[key]);
+            const colors = Object.keys(categories).map(key => categories[key].color);
+
+            // Biểu đồ tròn
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            if (pieChart) pieChart.destroy();
+            
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = formatMoney(context.parsed);
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Biểu đồ cột
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            if (barChart) barChart.destroy();
+            
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Chi tiêu (VNĐ)',
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatMoney(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cập nhật lịch sử
+        function updateHistory() {
+            const data = getData();
+            const historyList = document.getElementById('historyList');
+            
+            if (data.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3em;">📭</div>
+                        <p>Chưa có giao dịch nào. Hãy thêm khoản chi đầu tiên!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = data.map((item, index) => {
+                const cat = categories[item.category];
+                return `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-category">${cat.icon} ${cat.name}</div>
+                            <div class="history-amount">${formatMoney(item.amount)}</div>
+                            <div class="history-date">${new Date(item.date).toLocaleString('vi-VN')}</div>
+                        </div>
+                        <button class="btn-delete" onclick="deleteTransaction(${index})">🗑️ Xóa</button>
+                    </div>
+                `;
+            }).reverse().join('');
+        }
+
+        // Xóa giao dịch
+        function deleteTransaction(index) {
+            if (confirm('Bạn có chắc muốn xóa khoản chi này?')) {
+                const data = getData();
+                data.splice(index, 1);
+                saveData(data);
+                updateAll();
+            }
+        }
+
+        // Xóa tất cả
+        function resetAllData() {
+            if (confirm('Bạn có chắc muốn xóa TẤT CẢ dữ liệu?')) {
+                localStorage.removeItem('expenseData');
+                updateAll();
+            }
+        }
+
+        // Cập nhật toàn bộ
+        function updateAll() {
+            updateSummary();
+            updateCharts();
+            updateHistory();
+        }
+
+        // Xử lý form
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = getData();
+            let hasData = false;
+
+            Object.keys(categories).forEach(cat => {
+                const input = document.getElementById(cat);
+                const amount = parseFloat(input.value);
+                
+                if (amount && amount > 0) {
+                    data.push({
+                        category: cat,
+                        amount: amount,
+                        date: new Date().toISOString()
+                    });
+                    hasData = true;
+                    input.value = '';
+                }
+            });
+
+            if (hasData) {
+                saveData(data);
+                updateAll();
+                alert('✅ Đã thêm khoản chi thành công!');
+            } else {
+                alert('⚠️ Vui lòng nhập ít nhất một khoản chi!');
+            }
+        });
+
+        // Khởi tạo
+        updateAll();
+    </script>
+</body>
+</html>
